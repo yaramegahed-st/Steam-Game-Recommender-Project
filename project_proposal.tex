@@ -2,9 +2,10 @@
 \usepackage{amsmath}
 \usepackage[utf8]{inputenc}
 \usepackage[margin=0.75in]{geometry}
+\usepackage{hyperref}
 
-\title{CSC111 Project Proposal: TODO FILL IN YOUR PROJECT TITLE HERE}
-\author{TODO: FILL IN ALL GROUP MEMBER NAMES HERE}
+\title{CSC111 Project Proposal: Recommended Games List on Steam}
+\author{Laien Zou,Yara Megahed,Levi Pan,Haoxuan Shen}
 \date{\today}
 
 \begin{document}
@@ -12,15 +13,77 @@
 
 \section*{Problem Description and Research Question}
 
-TODO
+As game lovers, we often find it difficult to quickly discover a game that truly fits our preferences. This is especially true for students, who have limited time to browse through thousands of Steam pages, compare information, and read lengthy reviews. While Steam offers a vast catalogue and a tag system for searching, the process can still feel overwhelming, even when we have a specific type of game in mind. For this project, we want to build a recommendation system that is more "student game-lover friendly." Our tool will help users discover games that match their preferred genres and budget, and are likely to be enjoyable, without a significant time investment.
+
+Our central question is: \textbf{How can we design an interactive system that recommends Steam games to users by asking a few targeted questions about their preferences?} The goal of this project is to create an interface that prompts users for their tastes (e.g., preferred genres, price range) and then generates a personalized list of recommended games, complete with average ratings and other key statistics.
 
 \section*{Computational Plan}
+Our project will model the Steam ecosystem using a \textbf{graph-based data structure}. We will create two primary classes: \texttt{Game} and \texttt{User}.
 
-TODO
+The \texttt{Game} class will represent individual games, with attributes like \texttt{app\_id}, \texttt{name}, \texttt{price}, \texttt{genres}, \texttt{platforms}, \texttt{tags}, and review statistics. The core of our project is a \textbf{game similarity graph}, where each \texttt{Game} object is a vertex. An edge will be added between two games if their calculated similarity score exceeds a threshold. This score will be computed using a weighted combination of Jaccard similarity on their genre and tag sets, and a binary score for platform overlap (e.g., \(0.8 \times \text{tag\_similarity} + 0.2 \times \text{platform\_match}\)). This graph allows us to move beyond simple filtering and find games that are conceptually related.
 
-\section*{References}
+The \texttt{User} class will represent a user and will be connected to the \texttt{Game} objects if they have reviewed or commented on one certain game, forming a \textbf{user-game graph}. This structure will enable more advanced recommendation features in the future, such as collaborative filtering (e.g., "users who liked this game also liked..."). User could also view comments of other users to the game.
 
-TODO
+To meet the requirement for a tree-based structure, we will also implement a \textbf{genre tree}. This tree will organize games hierarchically (e.g., "Action" as a root with children "Shooter" and "Fighting," which further branch into specific games). This will allow users to navigate and explore the game catalogue in a more structured way, or for our algorithm to recommend from broader or narrower categories based on their input.
+
+We will use the \textbf{\texttt{networkx, tkinter,matplotlib} library}. \texttt{Networkx}, a new library for us, to help construct, analyze, and visualize our \texttt{Game-User} graph. We plan go how our algorithm works and show a path where how user's answers help us to find the recommended list of Steam games.Besides that, \texttt{matplotlib} would be external library which helps us to to draw the graph/subgraph or show charts of ratings/genres.
+
+Our program will be interactive, built with \textbf{\texttt{tkinter}}. The interface will ask users a series of questions to gather their preferences, such as:
+\begin{itemize}
+    \item Preferred genres (selected from the genre tree)
+    \item Maximum price
+    \item Minimum acceptable positive review ratio
+\end{itemize}
+
+\newpage
+
+The program will then perform a multi-step search:
+\begin{enumerate}
+    \item Filter games by the user's genre and price preferences.
+    \item Continue to filter these by their positive review ratio.
+    \item Use the game similarity graph to find games that are highly connected to the top results, expanding the recommendation set.
+    \item Rank the final list of games using a metric that combines popularity (e.g., number of reviews) and similarity score.
+    \item Display the top 10 recommendations to the user in the \texttt{tkinter} interface, showing each game's name, price, and average rating. The user could then click on a game to see its similarity graph neighborhood, visualized with \texttt{networkx} and \texttt{matplotlib}.
+\end{enumerate}
+
+\textbf{Dataset:} We will use a real-world dataset of Steam games and user reviews. Specifically, the "Steam Games Review" and "Steam Game Dataset" available on Kaggle and Github. This dataset contains the attributes (genre, tags, price, reviews) necessary to build our graphs and perform our computations.
+
+\section*{References by Category}
+
+\subsection*{GitHub Sources}
+
+\noindent
+[New23] \\
+NewbieIndieGameDev. \textit{steam-insights}. GitHub, 2023. \\
+\url{https://github.com/NewbieIndieGameDev/steam-insights}.
+
+\subsection*{Kaggle Datasets}
+
+\noindent
+[Dav19] \\
+Davis, Nik. \textit{Steam Store Games}. Kaggle, 2019. \\
+\url{https://www.kaggle.com/datasets/nikdavis/steam-store-games}.
+
+\noindent
+[Kie23] \\
+KieranPO'C. \textit{100 Million+ Steam Reviews}. Kaggle, 10 Dec. 2023. \\
+\url{https://www.kaggle.com/datasets/kieranpoc/steam-reviews/data}.
+
+\subsection*{Academic Sources}
+
+\noindent
+[Jac24] \\
+\textit{Jaccard Similarity}. ScienceDirect, Elsevier, 2024. \\
+\url{https://www.sciencedirect.com/topics/computer-science/jaccard-similarity}.
+
+\subsection*{LaTeX Tutorials}
+
+\noindent
+[Ove21] \\
+Overleaf. \textit{Bibliography management in LaTeX}. May 2021. \\
+\url{https://www.overleaf.com/learn/latex/Bibliography_management_in_LaTeX}.
+
+\end{document}
 
 % NOTE: LaTeX does have a built-in way of generating references automatically,
 % but it's a bit tricky to use so you are allowed to write your references manually
