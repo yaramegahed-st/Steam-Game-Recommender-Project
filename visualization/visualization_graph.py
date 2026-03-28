@@ -162,6 +162,42 @@ class VisualizationGraph:
         Preconditions:
         - set(self._graph_nx.nodes).issubset(pos)
         """
+        x_edges = []
+        y_edges = []
+        edge_texts = []
+
+        for edge in self._graph_nx.edges:
+            x0, y0 = pos[edge[0]]
+            x1, y1 = pos[edge[1]]
+
+            similarity = self._graph_nx.edges[edge].get('similarity', None)
+            if similarity is None:
+                text = ''
+            else:
+                text = f'Similarity: {similarity:.2f}'
+
+            x_edges.extend([x0, x1, None])
+            y_edges.extend([y0, y1, None])
+            edge_texts.extend([text, text, None])
+
+        return go.Scatter(
+            x=x_edges,
+            y=y_edges,
+            mode='lines',
+            line={'width': 1, 'color': 'gray'},
+            hoverinfo='text',
+            text=edge_texts
+        )
+
+    def build_node_trace(self, pos: dict[Any, tuple[float, float]]) -> go.Scatter:
+        """Return a Plotly trace for the nodes in this graph.
+
+        The center game is coloured red. Other games are coloured according to
+        their primary genre.
+
+        Preconditions:
+            - set(self._graph_nx.nodes).issubset(pos)
+        """
         x_nodes = []
         y_nodes = []
         node_ids = list(self._graph_nx.nodes)
@@ -188,46 +224,13 @@ class VisualizationGraph:
             textposition='top center',
             hovertext=hover_texts,
             hoverinfo='text',
-            marker={"size": 22, "color": colours, "line": {"width": 1, "color": 'black'}}
+            marker={
+                'size': 22,
+                'color': colours,
+                'line': {'width': 1, 'color': 'black'}
+            }
         )
-
-    def build_node_trace(self, pos: dict[Any, tuple[float, float]]) -> go.Scatter:
-        """Return a Plotly trace for the nodes in this graph.
-
-        Preconditions:
-        - set(self._graph_nx.nodes).issubset(pos)
-        """
-        x_nodes = []
-        y_nodes = []
-        node_ids = list(self._graph_nx.nodes)
-        hover_texts = self.build_node_texts()
-        colours = []
-        labels = []
-
-        for node_id in node_ids:
-            x, y = pos[node_id]
-            x_nodes.append(x)
-            y_nodes.append(y)
-
-            one_game = self._graph_nx.nodes[node_id]['game_obj']
-            labels.append(one_game.get_game_name())
-
-            if node_id == self._center_game.get_app_id():
-                colours.append('red')
-            else:
-                colours.append('lightblue')
-
-        return go.Scatter(
-            x=x_nodes,
-            y=y_nodes,
-            mode='markers+text',
-            text=labels,
-            textposition='top center',
-            hovertext=hover_texts,
-            hoverinfo='text',
-            marker={"size": 22, "color": colours, "line": {"width": 1, "color": 'black'}}
-        )
-
+    
     def _build_figure(self) -> go.Figure:
         """Return the Plotly figure for this visualization graph."""
         pos = nx.spring_layout(self._graph_nx, seed=42, weight='weight')
