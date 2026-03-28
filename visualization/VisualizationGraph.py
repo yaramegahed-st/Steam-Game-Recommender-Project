@@ -32,11 +32,9 @@ class VisualizationGraph:
         - _source_graph: the original GameUserGraph
         - _center_game: the selected center game
         - _graph_nx: the local networkx graph for visualization
-
     Representation Invariants:
-        - _center_game.get_app_id() in _source_graph._games
-        - _source_graph._games[_center_game.get_app_id()] is _center_game
-        - all(node_id in _source_graph._games for node_id in _graph_nx.nodes)
+        - _center_game.get_app_id() in _source_graph.get_all_vertices('game')
+        - all(node_id in _source_graph.get_all_vertices('game') for node_id in _graph_nx.nodes)
     """
     _source_graph: GameUserGraph
     _center_game: Game
@@ -46,8 +44,7 @@ class VisualizationGraph:
         """Initialize a visualization graph centered at center_game.
 
         Preconditions:
-        - center_game.get_app_id() in graph._games
-        - graph._games[center_game.get_app_id()] is center_game
+        - center_game.get_app_id() in graph.get_all_vertices('game')
         """
         self._source_graph = graph
         self._center_game = center_game
@@ -57,11 +54,15 @@ class VisualizationGraph:
     def _build_local_graph(self) -> None:
         """Build the local networkx graph for visualization.
 
+        The local graph contains the center game and the top 10 recommended
+        similar games returned by the source graph. Nodes are keyed by app_id,
+        while displayed labels use game names.
+
         Preconditions:
-        - self._center_game.get_app_id() in self._source_graph._games
+            - self._center_game.get_app_id() in self._source_graph.get_all_vertices('game')
         """
         _, recommended_ids = self._source_graph.recommended_ten_top_games(
-            self._center_game.get_app_id()
+            self._center_game.get_app_id(), None, None
         )
 
         self._graph_nx.add_node(
@@ -71,17 +72,16 @@ class VisualizationGraph:
         )
 
         for game_id in recommended_ids:
-            if game_id in self._source_graph._games:
-                recommended_game = self._source_graph._games[game_id]
-                self._graph_nx.add_node(
-                    recommended_game.get_app_id(),
-                    game_obj=recommended_game,
-                    is_center=False
-                )
-                self._graph_nx.add_edge(
-                    self._center_game.get_app_id(),
-                    recommended_game.get_app_id()
-                )
+            recommended_game = self._source_graph.get_game(game_id)
+            self._graph_nx.add_node(
+                recommended_game.get_app_id(),
+                game_obj=recommended_game,
+                is_center=False
+            )
+            self._graph_nx.add_edge(
+                self._center_game.get_app_id(),
+                recommended_game.get_app_id()
+            )
 
     def build_node_texts(self) -> list[str]:
         """Return hover text for all nodes in this visualization graph.
@@ -95,7 +95,7 @@ class VisualizationGraph:
             one_game = self._graph_nx.nodes[node_id]['game_obj']
             text = f'Game: {one_game.get_game_name()}'
             text += f'<br>Price: {one_game.get_price()}'
-            text += f'<br>Genre: {one_game.get_game_genre()}'
+            text += f'<br>Genre: {", ".join(one_game.get_game_genre())}'
             text += f'<br>Platform: {", ".join(one_game.get_platform())}'
             texts.append(text)
 
