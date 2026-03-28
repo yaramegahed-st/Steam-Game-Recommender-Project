@@ -66,9 +66,9 @@ class _Vertex:
             - other.item_type == "game"
 
         >>> stat1 = game.Statistics('Very Positive', 80, 100, 20, 50)
-        >>> g1 = game.Game(1, 'Game one', 'Action', 10.0, ['Window'], {'Action', 'Adventure'}, 'game one', stat1)
+        >>> g1 = game.Game(1, 'Game one', ['Action'], 10.0, ['Window'], {'Action', 'Adventure'}, 'game one', stat1)
         >>> stat2 = game.Statistics('Overwhelmingly Positive', 90, 200, 10, 80)
-        >>> g2 = game.Game(2, 'Game Two', 'Action', 20.0, ['Window'], {'Action', 'RPG'}, 'game two', stat2)
+        >>> g2 = game.Game(2, 'Game Two', ['Action'], 20.0, ['Window'], {'Action', 'RPG'}, 'game two', stat2)
         >>> game_data = {1: g1, 2: g2}
         >>> v1 = _Vertex(1, 'game')
         >>> v2 = _Vertex(2, 'game')
@@ -102,7 +102,9 @@ def genre_score(g1: game.Game, g2: game.Game) -> float:
         - self.item_type == "game"
         - other.item_type == "game"
     """
-    return 1.0 if g1.get_game_genre() == g2.get_game_genre() else 0.0
+    genres1 = set(g1.get_game_genre())
+    genres2 = set(g2.get_game_genre())
+    return 1.0 if genres1.intersection(genres2) else 0.0
 
 
 def tag_score(g1: game.Game, g2: game.Game) -> float:
