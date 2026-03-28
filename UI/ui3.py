@@ -27,7 +27,6 @@ class Interface:
         self.q1_error_label = None
         self.q2_error_label = None
         self.q3_error_label = None
-        self.q4_error_label = None
 
         self.min_budget = None
         self.max_budget = None
@@ -36,13 +35,11 @@ class Interface:
         self.entries = {}
         self.answers = {}
         self.q2_vars = {}
-        self.q3_vars = {}
 
         self.create_home_frame()
         self.create_q1_frame()
         self.create_q2_frame()
         self.create_q3_frame()
-        self.create_q4_frame()
         self.create_result_visual_frame()
         self.create_visual_frame()
 
@@ -170,7 +167,7 @@ class Interface:
 
         question = Label(
             frame,
-            text="Question 2: What are your favorite genres?",
+            text="Question 2: What are your favorite genres? Pick as many genres as you like",
             font=("Times New Roman", 22),
             bg="#1210d9",
             fg="white"
@@ -219,7 +216,7 @@ class Interface:
         back_button.pack(pady=20)
 
     def create_q3_frame(self) -> None:
-        """Create the question 3 page."""
+        """Create the question 1 page."""
         frame = Frame(self.container, bg="#1210d9")
         self.frames["q3"] = frame
 
@@ -238,75 +235,7 @@ class Interface:
 
         question = Label(
             frame,
-            text="Question 3: Do you prefer mainstream or indie games?",
-            font=("Times New Roman", 22),
-            bg="#1210d9",
-            fg="white"
-        )
-        question.pack(pady=20)
-
-        options_frame = Frame(frame, bg="#1210d9")
-        options_frame.pack(pady=10)
-
-        self.q3_error_label = Label(
-            frame,
-            text="",
-            font=("Times New Roman", 18),
-            fg="red",
-            bg="#1210d9"
-        )
-        self.q3_error_label.pack(pady=10)
-
-        for choice in [True, False]:
-            var = BooleanVar()
-            self.q3_vars[choice] = var
-
-            cb = Checkbutton(
-                options_frame,
-                text= "Yes" if choice else "No",
-                variable=var,
-                font=("Times New Roman", 18),
-                bg="#1210d9"
-            )
-            cb.pack(anchor="w")
-
-        forward_button = Button(
-            frame,
-            text="Enter",
-            font=("Times New Roman", 25),
-            command=lambda: self.save_q3_answers()
-        )
-        forward_button.pack(pady=20)
-
-        back_button = Button(
-            frame,
-            text="Back",
-            font=("Times New Roman", 20),
-            command=lambda: self.show_frame("q2")
-        )
-        back_button.pack(pady=20)
-
-    def create_q4_frame(self) -> None:
-        """Create the question 1 page."""
-        frame = Frame(self.container, bg="#1210d9")
-        self.frames["q4"] = frame
-
-        frame.grid(row=0, column=0, sticky="nsew")
-        frame.rowconfigure(0, weight=1)
-        frame.columnconfigure(0, weight=1)
-
-        label = Label(
-            frame,
-            text="Question 4",
-            font=("Times New Roman", 30),
-            bg="#ea1136",
-            fg="white"
-        )
-        label.pack(pady=30)
-
-        question = Label(
-            frame,
-            text="Question 4: What is your budget range? "
+            text="Question 3: What is your budget range? "
                  "If you don't pick any values, it will automate to the minimum and maximum prices on the sliders ",
             font=("Times New Roman", 22),
             bg="#1210d9",
@@ -323,7 +252,7 @@ class Interface:
         Scale(
             frame,
             from_=0,
-            to=200,
+            to=250,
             orient="horizontal",
             variable=self.min_budget,
             length=400
@@ -339,20 +268,20 @@ class Interface:
             length=400
         ).pack(pady=10)
 
-        self.q4_error_label = Label(
+        self.q3_error_label = Label(
             frame,
             text="",
             fg="red",
             bg="#1210d9",
             font=("Times New Roman", 16)
         )
-        self.q4_error_label.pack()
+        self.q3_error_label.pack()
 
         forward_button = Button(
             frame,
             text="Enter",
             font=("Times New Roman", 25),
-            command=lambda: self.save_q4_answer()
+            command=lambda: self.save_q3_answer()
         )
         forward_button.pack(pady=20)
 
@@ -360,7 +289,7 @@ class Interface:
             frame,
             text="Back",
             font=("Times New Roman", 20),
-            command=lambda: self.show_frame("q3")
+            command=lambda: self.show_frame("q2")
         )
         back_button.pack(pady=20)
 
@@ -391,6 +320,8 @@ class Interface:
         )
         question.pack(pady=20)
 
+
+
         forward_button = Button(
             frame,
             text="Yes Please!",
@@ -403,7 +334,7 @@ class Interface:
             frame,
             text="Back",
             font=("Times New Roman", 20),
-            command=lambda: self.show_frame("q4")
+            command=lambda: self.show_frame("q3")
         )
         back_button.pack(pady=20)
 
@@ -492,42 +423,22 @@ class Interface:
         print(self.answers["q2"])
         self.show_frame("q3")
 
-    def save_q3_answers(self) -> None:
-        selected = []
+    def save_q3_answer(self) -> None:
+        min_val = self.min_budget.get()
+        max_val = self.max_budget.get()
 
-        for genre, var in self.q3_vars.items():
-            if var.get():
-                selected.append(genre)
-
-        if not selected:
-            self.q3_error_label.config(text="Please select an option!")
+        if min_val > max_val:
+            self.q3_error_label.config(text="Min cannot be greater than Max!")
             return
 
         self.q3_error_label.config(text="")
 
         self.answers["q3"] = {
-            "keywords": selected
-        }
-
-        print(self.answers["q3"])
-        self.show_frame("q4")
-
-    def save_q4_answer(self) -> None:
-        min_val = self.min_budget.get()
-        max_val = self.max_budget.get()
-
-        if min_val > max_val:
-            self.q4_error_label.config(text="Min cannot be greater than Max!")
-            return
-
-        self.q4_error_label.config(text="")
-
-        self.answers["q4"] = {
             "min": min_val,
             "max": max_val
         }
 
-        print(self.answers["q4"])
+        print(self.answers["q3"])
         self.show_frame("result")
 
     def reset_survey(self) -> None:
@@ -535,7 +446,23 @@ class Interface:
         for entry in self.entries.values():
             entry.delete(0, "end")
 
+        for var in self.q2_vars.values():
+            var.set(False)
+
+        if self.min_budget:
+            self.min_budget.set(0)
+        if self.max_budget:
+            self.max_budget.set(200)
+
         self.answers.clear()
+
+        if self.q1_error_label:
+            self.q1_error_label.config(text="")
+        if self.q2_error_label:
+            self.q2_error_label.config(text="")
+        if self.q3_error_label:
+            self.q3_error_label.config(text="")
+
         self.show_frame("home")
 
     def get_user_answers(self):
