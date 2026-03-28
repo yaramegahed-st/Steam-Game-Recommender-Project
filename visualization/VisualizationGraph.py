@@ -120,7 +120,7 @@ class VisualizationGraph:
             x=x_edges,
             y=y_edges,
             mode='lines',
-            line=dict(width=1, color='gray'),
+            line={"width": 1, "color": 'gray'},
             hoverinfo='none'
         )
 
@@ -158,11 +158,7 @@ class VisualizationGraph:
             textposition='top center',
             hovertext=hover_texts,
             hoverinfo='text',
-            marker=dict(
-                size=22,
-                color=colours,
-                line=dict(width=1, color='black')
-            )
+            marker={"size": 22, "color": colours, "line": {"width": 1, "color": 'black'}}
         )
 
     def _build_figure(self) -> go.Figure:
@@ -178,9 +174,9 @@ class VisualizationGraph:
             title_x=0.5,
             showlegend=False,
             hovermode='closest',
-            margin=dict(b=20, l=20, r=20, t=60),
-            xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
-            yaxis=dict(showgrid=False, zeroline=False, showticklabels=False)
+            margin={"b": 20, "l": 20, "r": 20, "t": 60},
+            xaxis={"showgrid": False, "zeroline": False, "showticklabels": False},
+            yaxis={"showgrid": False, "zeroline": False, "showticklabels": False}
         )
         return figure
 
