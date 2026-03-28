@@ -1,0 +1,57 @@
+    def create_result_visual_frame(self) -> None:
+        """Create page that displays results and allow option to show visualization."""
+        frame = Frame(self.container, bg="#1210d9")
+        self.frames["result"] = frame
+
+        frame.grid(row=0, column=0, sticky="nsew")
+        frame.rowconfigure(0, weight=1)
+        frame.columnconfigure(0, weight=1)
+
+        label = Label(
+            frame,
+            text="Here are the results for the top ten most suitable games for you!",
+            font=("Times New Roman", 30),
+            bg="#1210d9",
+            fg="white"
+        )
+        label.pack(pady=30)
+
+        game_name = self.answers["q1"]["keywords"][0]
+        genres = self.answers["q2"]["keywords"]
+        min_price = int(self.answers["q3"]["min"])
+        max_price = int(self.answers["q3"]["max"])
+
+        self.displays_graph_results(game_name, genres, min_price, max_price)
+
+        question = Label(
+            frame,
+            text="Do you want to access the graph visualisation?",
+            font=("Times New Roman", 22),
+            bg="#1210d9",
+            fg="white"
+        )
+        question.pack(pady=20)
+
+        forward_button = Button(
+            frame,
+            text="Yes Please!",
+            font=("Times New Roman", 25),
+            command=lambda: self.show_frame("visual")
+        )
+        forward_button.pack(pady=20)
+
+        back_button = Button(
+            frame,
+            text="Back",
+            font=("Times New Roman", 20),
+            command=lambda: self.show_frame("q3")
+        )
+        back_button.pack(pady=20)
+
+        back_home_button = Button(
+            frame,
+            text="Back to Home",
+            font=("Times New Roman", 20),
+            command=lambda: self.reset_survey()
+        )
+        back_home_button.pack(pady=20)
