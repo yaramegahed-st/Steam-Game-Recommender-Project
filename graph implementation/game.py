@@ -12,6 +12,8 @@ distribution of this code, whether as given or with any changes, are expressly p
 
 This file is Copyright 2026 CSC111 Project 2 Group Yara Megahed,Levi Pan,Haoxuan Shen, Laien Zou.
 """
+
+from __future__ import annotations
 from typing import Optional
 
 DESCRIPTION = ["Overwhelmingly Positive", "Very Positive", "Mostly Positive", "Mixed", "Mostly Negative",
@@ -88,14 +90,14 @@ class Game:
     """
     app_id: int
     game_name: str
-    game_genre: str
+    game_genre: list[str]
     price: float
     platform: list[str]
     tags: set[str]
     description: str
     statistics: Statistics
 
-    def __init__(self, game_id: int, name: str, genre: str, price: float,platform: list[str],
+    def __init__(self, game_id: int, name: str, genre: list[str], price: float,platform: list[str],
                  tags: set[str], summary: str, stat: Statistics) -> None:
         """Initialize a new game with given data.
 
@@ -121,7 +123,7 @@ class Game:
         """Return the game name of the game"""
         return self.game_name
 
-    def get_game_genre(self) -> str:
+    def get_game_genre(self) -> list[str]:
         """Return the overall genre for the game.
 
         Precondition:
@@ -171,3 +173,35 @@ class Game:
     def get_num_recommendation(self) -> Optional[int]:
         """Returh the number of users recommendation of the game."""
         return self.statistics.num_recommendation
+
+    def get_positive_ratio(self) -> float | None:
+        """Return the positive review ratio of this game.
+
+        Return None if the game does not have enough data to compute the ratio.
+        """
+        pos = self.get_num_positive_review()
+        neg = self.get_num_negative_review()
+
+        if pos is None or neg is None:
+            return None
+        if pos + neg == 0:
+            return None
+
+        return pos / (pos + neg)
+
+    def passes_recommendation_restrictions(self) -> bool:
+        """Return whether this game satisfies the recommendation restrictions.
+
+        A game can be recommended only if:
+            - its positive ratio is greater than 0.75
+            - more than 1000 users recommended/commented on it
+        """
+        ratio = self.get_positive_ratio()
+        recommendation_count = self.get_num_recommendation()
+
+        return (
+                ratio is not None
+                and ratio > 0.75
+                and recommendation_count is not None
+                and recommendation_count > 1000
+        )
