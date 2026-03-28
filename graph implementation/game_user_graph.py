@@ -15,6 +15,7 @@ This file is Copyright 2026 CSC111 Project 2 Group Yara Megahed,Levi Pan,Haoxuan
 
 from __future__ import annotations
 import csv
+import random
 from typing import Any
 from vertex import _Vertex
 import game
@@ -39,6 +40,14 @@ class GameUserGraph:
         self._vertices = {}
         self._games = games
         self._users = users
+
+    def get_game(self, game_id: int) -> game.Game:
+        """Return the Game object with the given game_id
+
+        Precondition:
+            - game_id in self._games
+        """
+        return self._games[game_id ]
 
     def get_all_vertices(self, kind: str = '') -> set:
         """Return a set of all vertex items in this graph.
@@ -107,61 +116,145 @@ class GameUserGraph:
         if v1.get_similarity(v2, self._games):
             self.add_edge(item1, item2)
 
-    def recommended_ten_top_games(self, item: Any) -> tuple[list[str], list[int]]:
+    def filter_top_games_with_genre(self, genres: list[str], low_price: int,
+                                    high_price: int) -> tuple[list[str], list[int]]:
         """Return a list of strings that contains the 10 tops game that are recommended,
          and the list of app_id corresponding to the games.
+
+        The genres is the list of string of genre that contains the game preferences that the user input, and
+        low_price and high_price is the price range of the recommended games.
+
+        The first return list contains 10 games' names that are highly recommended by the algorithm of
+        similarity score,and it is sorted in descending order by the similarity score.
+        The second return list is the 10 app_id for the games. It should correspond to the first game name list.
+
+        The function would first select all the games from self._games where their genre is in the list of input
+        genres. Then it would randomly choose a game from the list that has Game object neighbours and use
+        recommended_ten_top_games to generate the list.
+
+        Precondition:
+            - single_genre in game.GENRE
+            - 0 <= low_price < high_price
+
+        >>> games = load_game_data('data/medium_game_sample_300.csv')
+        >>> users = load_user_data ('data/medium_user_sample_50.csv')
+        >>> g = load_game_user_graph(games, users)
+        >>> names, ids = g.filter_top_games_with_genre(['Action'], 5, 20)
+        >>> len(names) <= 10
+        True
+        >>> len(names) == len(ids)
+        True
+        >>> all(game_id in games for game_id in ids)
+        True
+        >>> all(0 <= games[i].get_price() <= 20 for i in ids)
+        True
+        """
+        filtered_games = []
+
+        for game_id, game_obj in self._games.items():
+            if any(genre in genres for genre in game_obj.get_game_genre()):
+                filtered_games.append(game_id)
+
+        while filtered_games:
+            chosen_game_id = random.choice(filtered_games)
+            rec_names, rec_ids = self.recommended_ten_top_games(chosen_game_id, low_price, high_price)
+
+            if rec_names:
+                return rec_names, rec_ids
+
+            filtered_games.remove(chosen_game_id)
+
+        return [], []
+
+    def recommended_ten_top_games(self, item: Any, low_price: int | None,
+                                  high_price: int | None) -> tuple[list[str], list[int]]:
+        """Return a list of strings that contains the 10 tops game that are recommended,
+         and the list of app_id corresponding to the games with the given app_id and the price range of a certain game.
 
         The first return list contains 10 games' names that are highly recommended by the algorithm of similarity score,
         and it is sorted in descending order by the similarity score.
         The second return list is the 10 app_id for the games. It should correspond to the first game name list.
 
-         Precondition:
-            - self._vertices[item].item_type == "game"
+        If the game does not contain 10 similar games that fit the requirments,
+        then return the list with all the similar games sorting by similarity score.
 
-        >>> games = load_game_data('data/small_game_sample_30.csv')
-        >>> users = load_user_data('data/small_user_sample_5.csv')
+        If the similar game's price is not between low_price and high_price, then this game will not
+        be considered in the recommended list. If low_price and high_price are all None, select all the games that in
+        self._vertices[item]. Else if only one of them is None, select the game that game price is smaller than
+        high-price or greater than low_price.
+
+         Precondition:
+            - item in self._vertices.keys()
+            - self._vertices[item].item_type == "game"
+            - 0 <= low_price < high_price
+
+        # Case 1: No price filter
+        >>> games = load_game_data('data/medium_game_sample_300.csv')
+        >>> users = load_user_data('data/medium_user_sample_50.csv')
         >>> g = load_game_user_graph(games, users)
         >>> sample_game_id = next(iter(games))
-        >>> rec_names, rec_ids = g.recommended_ten_top_games(sample_game_id)
+        >>> rec_names, rec_ids = g.recommended_ten_top_games(sample_game_id, None, None)
         >>> len(rec_names)
-        10
+        5
         >>> len(rec_ids)
-        10
+        5
         >>> rec_names[0]
-        'Domain Defense VR'
-        >>> rec_ids[0]
-        455190
+        'Resident Evil / biohazard HD REMASTER'
         >>> rec_names[-1]
-        'American University Life ~Welcome Week!~'
+        'Squishy the Suicidal Pig'
+        >>> rec_ids[0]
+        304240
         >>> rec_ids[-1]
-        904050
+        318430
+
+        # Case 2: Price range filter
+        >>> rec_names2, rec_ids2 = g.recommended_ten_top_games(sample_game_id, 5, 20)
+        >>> len(rec_names2) <= len(rec_names)
+        True
+        >>> len(rec_names) == len(rec_ids)
+        True
+
+        # Case 3: Only low price
+        >>> rec_names3, rec_ids3 = g.recommended_ten_top_games(sample_game_id, 10, None)
+        >>> all(games[i].get_price() >= 10 for i in rec_ids3)
+        True
+
+        # Case 4: Only high price
+        >>> rec_names4, rec_ids4 = g.recommended_ten_top_games(sample_game_id, None, 15)
+        >>> all(games[i].get_price() <= 15 for i in rec_ids4)
+        True
         """
         target_vertex = self._vertices[item]
 
-        scores = []  # (score, game_id)
+        scores = []
 
-        # compute similarity with all other games
-        for other_id in self._vertices:
-            other_vertex = self._vertices[other_id]
+        for neighbour in target_vertex.neighbours:
+            if neighbour.item_type == 'game':
+                game_id = neighbour.item
+                price = self._games[game_id].get_price()
 
-            if other_id != item and other_vertex.item_type == 'game':
-                score = target_vertex.similarity_score(other_vertex, self._games)
-                scores.append((score, other_id))
+                if low_price is None and high_price is None:
+                    include_game = True
+                elif low_price is None:
+                    include_game = price <= high_price
+                elif high_price is None:
+                    include_game = price >= low_price
+                else:
+                    include_game = low_price <= price <= high_price
 
-        # sort using lambda (by score only)
-        # scores.sort(key=lambda x: x[0], reverse=True)
+                if include_game and self._games[game_id].passes_recommendation_restrictions():
+                    score = target_vertex.similarity_score(neighbour, self._games)
+                    scores.append((score, game_id))
+
+        # Sort by descending similarity score, then by app_id for tie-breaking
         scores.sort(key=lambda x: (-x[0], x[1]))
-
-        # take top 10
         top_10 = scores[:10]
 
-        # build result
         names = []
         ids = []
 
-        for score, game_id in top_10:
-            game1 = self._games[game_id]
-            names.append(game1.get_game_name())
+        for _, game_id in top_10:
+            names.append(self._games[game_id].get_game_name())
             ids.append(game_id)
 
         return names, ids
@@ -236,7 +329,7 @@ def load_game_data(game_file: str) -> dict[Any, game.Game]:
 
         for row in reader:
             app_id = int(row['app_id'])
-            genre = row['game_genre'].split('|')[0].strip()
+            genre = [g.strip() for g in row['game_genre'].split('|')]
             price = float(row['price'])
             platform = _parse_platform(row['platform'])
             tags = _parse_tags(row['tags'])
@@ -319,7 +412,13 @@ def load_game_user_graph(game_data: dict[Any, game.Game], user_data: dict[Any, u
         for j in range(i + 1, len(game_ids)):
             g1 = game_ids[i]
             g2 = game_ids[j]
-            graph.add_game_edge(g1, g2)
+
+            game1 = game_data[g1]
+            game2 = game_data[g2]
+
+            # Only compare if they share tags
+            if game1.get_tags().intersection(game2.get_tags()):
+                graph.add_game_edge(g1, g2)
 
     return graph
 
@@ -330,11 +429,12 @@ if __name__ == '__main__':
     doctest.testmod()
 
     import python_ta
-
+    
     python_ta.check_all(config={
         'max-line-length': 120,
         'disable': ['static_type_checker'],
-        'extra-imports': ['csv', 'game', 'user', 'vertex'],
+        'extra-imports': ['csv', 'game', 'user', 'vertex', 'random'],
         'allowed-io': ['load_game_data', 'load_user_data'],
         'max-nested-blocks': 4
     })
+
