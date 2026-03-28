@@ -55,3 +55,45 @@
             command=lambda: self.reset_survey()
         )
         back_home_button.pack(pady=20)
+
+
+
+
+
+    def displays_graph_results(self) -> None:
+        """Takes the list of game names and displays thems one after the other"""
+        game_name = self.answers["q1"]["keywords"]
+        game_name = game_name[0] if game_name else ""
+        genres = self.answers["q2"]["keywords"]
+        min_price = int(self.answers["q3"]["min"])
+        max_price = int(self.answers["q3"]["max"])
+
+        list_games = self.return_graph_results(game_name, genres, min_price, max_price)[0]
+
+        for widget in self.result_frame.winfo_children():
+            widget.destroy()
+
+        # Title
+        title = Label(
+            self.result_frame,
+            text="Here are your answers:",
+            font=("Times New Roman", 30),
+            bg="#1210d9",
+            fg="white"
+        )
+        title.pack(pady=20)
+
+        # Display each answer
+        for game in list_games:
+            text = game
+
+            label = Label(
+                self.result_frame,
+                text=text,
+                font=("Times New Roman", 18),
+                bg="#1210d9",
+                fg="white",
+                wraplength=800,
+                justify="center"
+            )
+            label.pack(pady=10)
