@@ -47,7 +47,11 @@ class GameUserGraph:
         Precondition:
             - game_id in self._games
         """
-        return self._games[game_id ]
+        return self._games[game_id]
+
+    def get_games(self) -> dict[int, game.Game]:
+        """Return the dictionart data of all games"""
+        return self._games
 
     def get_all_vertices(self, kind: str = '') -> set:
         """Return a set of all vertex items in this graph.
