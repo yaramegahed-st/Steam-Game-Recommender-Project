@@ -9,3 +9,7 @@ python-ta
 plotly
 pygame
 pillow
+
+# User interface
+tkinter
+PIL
