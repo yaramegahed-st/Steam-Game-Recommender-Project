@@ -1,7 +1,7 @@
 """
 CSC111 Project 2 main.py
-This file is aim to create the main file of the recommended system of Steam Game, providing list of commands that
-help user to set up and open the Steam recommended system.
+This file launches the Steam game recommender system by loading the datasets,
+building the graph, and opening the user interface.
 
 Copyright and Usage Information
 ===============================
@@ -15,16 +15,37 @@ This file is Copyright 2026 CSC111 Project 2 Group Yara Megahed,Levi Pan,Haoxuan
 
 from __future__ import annotations
 
-# Importing classes
-import game
-import user
-import vertex
 import game_user_graph
-import VisualizationGraph
+from UI.ui3 import Interface
 
-import csv
 
-game_data = game_user_graph.load_game_data('data/cleaned_steam_data.csv')
-user_data = game_user_graph.load_user_data('data/sample_user_data.csv')
+def run_program() -> None:
+    """Load the datasets, build the graph, and launch the interface."""
+    game_data = game_user_graph.load_game_data('Data/filtered_steam_data_4000.csv')
+    user_data = game_user_graph.load_user_data('Data/sample_user_data_4000.csv')
+    graph = game_user_graph.load_game_user_graph(game_data, user_data)
 
-graph = game_user_graph.load_game_user_graph(game_data, user_data)
+    Interface(graph, 'Data/filtered_steam_data_4000.csv')
+
+
+if __name__ == '__main__':
+    run_program()
+
+    # User Choice Method
+    # for question 1, enter "Left 4 Dead 2"
+    # for question 2, choose all the genres
+    # for question 3, don't use the sliders
+    # the results will be displayed for top ten games similar to "Left 4 Dead 2" ie have similar genres and price range
+    # see the bar chart and path visualization
+    # see the comments page
+    # click on "Back to Home" to clear all previous answers and get new recommendations
+
+    # Most Recommended Game Method
+    # for question 1, enter "aaa" which is not a valid game name, hence it cannot be used in the filtering
+    # for question 2, choose the genres you please
+    # for question 3, use the sliders how you please
+    # the recommendation system will pick a game with the highest number of recommendations that clears all the
+    # filters and the results
+    # will be displayed for top ten games similar to that random game ie have similar genres and price range
+    # see the bar chart and path visualization
+    # see the comments page
