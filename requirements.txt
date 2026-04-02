@@ -1,0 +1,5 @@
+# CSC111 Project 2: Python libraries that are required in Steam Recommended System
+python-ta
+plotly
+networkx
+Pillow
